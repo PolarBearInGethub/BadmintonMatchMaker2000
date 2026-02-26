@@ -14,6 +14,7 @@ Day 1  (2/15/2026): Made a continuation helper function, throughly checks input 
 Started working on normal round-robin matchmaking by setting the area for it, making it so we get the list of player names & declaration of round #
 (Note to self: maybe add a "quit" option to the check_continuation method)
 Day 2 (2/16/2026): Made a check word function so you can check A or B. Changed some stuff to implement it.
+Day 3 (2/26/2026): Setted up Github on computer for laptop to be able to access.
 */
 
 std::ifstream fin("badmintonRecords.txt");
