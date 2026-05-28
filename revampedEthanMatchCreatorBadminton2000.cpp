@@ -15,6 +15,7 @@ Started working on normal round-robin matchmaking by setting the area for it, ma
 (Note to self: maybe add a "quit" option to the check_continuation method)
 Day 2 (2/16/2026): Made a check word function so you can check A or B. Changed some stuff to implement it.
 Day 3 (2/26/2026): Setted up Github on computer for laptop to be able to access.
+Day 4 (2/28/2026): Burned the shifted_player_list and replaced it with something that I need to change later as it doesn't work.
 */
 
 std::ifstream fin("badmintonRecords.txt");
@@ -157,30 +158,46 @@ int check_word(std::string specific_user_pick, std::string user_option1, std::st
         std::cin >> specific_user_pick_again;
         return check_word(specific_user_pick_again, user_option1, user_option2);
     }
+    return 0;
 }
 
 void normal_round_robin_matchmaker(std::vector<std::string> player_list) {
-    std::vector<std::string> shifted_player_list;
-    if (player_list.size() % 2 == 1) {
-        player_list.push_back("B");
-    }
-    for (int all_but_one_player = (player_list.size() / 2) - 1; all_but_one_player > 0; all_but_one_player--) {
-        shifted_player_list.push_back(player_list[all_but_one_player]);
-    }
-    for (int all_but_one_player_jump = player_list.size() - 1; all_but_one_player_jump >= player_list.size() / 2; all_but_one_player_jump--) {
-        shifted_player_list.push_back(player_list[all_but_one_player_jump]);
-    }
-    // above is me crafting a list thing that should work
-    /*
-    How it functions:
-    So I will just give an example, with 8 players, I will basically have this list do in this order: player 4, 3, 2, 8, 7, 6, 5
-    I'm gonna eventually use index thingies and hopefully it'll work out
-    */
-    for (int rounds = 1; rounds < player_list.size(); rounds++) { // although I couldve just done rounds = 1 & rounds < player_list.size(), I don't feel like it (Changed it)
+/*
+Model With 8 Players (Clockwise):
+0 7   0 6   0 5   0 4   0 3   0 2   0 1
+6 1   5 7   4 6   3 5   2 4   1 3   7 2
+5 2   4 1   3 7   2 6   1 5   7 4   6 3
+4 3   3 2   2 1   1 7   7 6   6 5   5 4
+*/
+    int other_player_index = player_list.size() - 2; // second last player
+    int other_player_index2 = 1;
+    int other_player_index_variation = 0; // both variations going to have value inputted in loops
+    int other_player_index2_variation = 0; // also declared here so no weird red underline
+    for (int rounds = 1; rounds < player_list.size(); rounds++) { // although I couldve just done rounds = 1 & rounds < player_list.size(), I don't feel like it (P.S. Changed it)
         std::cout << "\nRound " << rounds <<  ": " << std::endl;
-        std::cout << player_list[0] << " is playing against " << player_list[player_list.size() - rounds]; // first match-up
+        std::cout << player_list[0] << " is playing against " << player_list[player_list.size() - rounds] << std::endl; // first match-up
         for (int other_games = 1; other_games < (player_list.size() / 2); other_games++) { // other match-ups
-            
+            other_player_index_variation = other_player_index - (other_games - 1);
+            if (rounds == 1) { // for some reason with my model, the second column is increasing at the beginning
+                other_player_index2_variation = other_player_index2 + (other_games - 1);
+            } else {
+                other_player_index2_variation = other_player_index2 - (other_games - 1);
+            }
+            if (other_player_index_variation == 0) {
+                other_player_index_variation += (player_list.size() - 1);
+            }
+            if (other_player_index2_variation == 0) {
+                other_player_index2_variation += (player_list.size() - 1);
+            }
+            std::cout << player_list[other_player_index_variation] << " is playing against " << player_list[other_player_index2_variation] << std::endl;
+        }
+        other_player_index--;
+        other_player_index2--;
+        if (other_player_index == 0) {
+            other_player_index += (player_list.size() - 1);
+        }
+        if (other_player_index2 == 0) {
+            other_player_index2 += (player_list.size() - 1);
         }
     }
 }
