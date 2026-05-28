@@ -28,6 +28,7 @@ void normal_round_robin_matchmaker(std::vector<std::string> player_list);
 void fetch_data(std::string information); // going to be used for the save function and records
 void check_continuation(bool& still_using, std::string continuation, bool& repeat_continuation); // used to see if they wish to continue or not
 int check_word(std::string specific_user_pick, std::string user_option1, std::string user_option2); // variation of check_continuation but for A or B
+bool simplified_continuation_once(std::string word, std::string user_input); // checks once if user input matches a word
 
 int main() {
     bool still_using = true; // variable made to keep this running
@@ -47,9 +48,12 @@ int main() {
         }
         std::cout << "\nWhat do you wish to do? (Type: 'info' for options): " << std::endl;
         std::cin >> user_pick;
+        /*
+        below is what I used to have like w/o some continuation functions
         // funky lambda function to lowercaseify, frequent in this program
         std::transform(user_pick.begin(), user_pick.end(), user_pick.begin(), [](unsigned char hopefullyThisWork){return std::tolower(hopefullyThisWork);}); // hopefullyThisWork = variable for lower
-        if (user_pick == "info" || user_pick == "i") { // lists  options available to use
+        */
+        if (simplified_continuation_once("info", user_pick)) {
             std::cout << "\nOptions (P.S. The first letter of each option also is valid): " << std::endl;
             std::cout << "'info' - Gives available options" << std::endl << "'records' - Allows you to view previous matches" << std::endl;
             std::cout << "'save' - Saves match information and sends it to records" << std::endl << "'matchmaking' - Creates a type of matchmaking format" << std::endl;
@@ -58,7 +62,7 @@ int main() {
             check_continuation(still_using, continuation, repeat_continuation);
         } 
 
-        else if (user_pick == "matchmaking" || user_pick == "m") { // does matchmaking
+        else if (simplified_continuation_once("matchmaking", user_pick)) { // does matchmaking
             std::cout << "\nWhat type of matchmaking event is this for? (Tryouts or Practice): " << std::endl; // allows choosing of matchmaking format
             std::cin >> matchmaking_type;
             int matchmaking_type_int = check_word(matchmaking_type, "tryouts", "practice");
@@ -84,6 +88,18 @@ int main() {
         }
     }
     return 0;
+}
+
+bool simplified_continuation_once(std::string word, std::string user_input) {
+    std::transform(user_input.begin(), user_input.end(), user_input.begin(), [](unsigned char lower_char){return std::tolower(lower_char);});
+    std::string comparison_string = "";
+    for (char character : word) {
+        comparison_string += character;
+        if (comparison_string == user_input) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void check_continuation(bool& still_using, std::string continuation, bool& repeat_continuation) {
