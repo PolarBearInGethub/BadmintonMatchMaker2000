@@ -5,17 +5,21 @@
 #include <vector>
 #include <cctype>
 #include <sstream>
+#include <cstdlib>
 
 /*
 DEV LOG:
 Day 0 (2/14/2026): Made ideas of normal round-robin matchmaking system and saving data. Learned about lambda functions to use
 the algorithm library for std::tolower. Made the 'info' option.
-Day 1  (2/15/2026): Made a continuation helper function, throughly checks input compared to other functions. Started commenting.
+Day 1  (2/15/2026): Made a continuation helper function, thoroughly checks input compared to other functions. Started commenting.
 Started working on normal round-robin matchmaking by setting the area for it, making it so we get the list of player names & declaration of round #
 (Note to self: maybe add a "quit" option to the check_continuation method)
 Day 2 (2/16/2026): Made a check word function so you can check A or B. Changed some stuff to implement it.
 Day 3 (2/26/2026): Setted up Github on computer for laptop to be able to access.
 Day 4 (2/28/2026): Burned the shifted_player_list and replaced it with something that I need to change later as it doesn't work.
+Day 5 (7/20/2026): Scrapped the entirety of the old round-robin system as I'm too lazy to reunderstand my old thought process
+Day 6 (8/5/2026): Redid my normal round-robian matchmaking, now a lot simpler. Works but probably will implement some tweaks for design.
+Day 6.1 (8/5/2026): Realized lots of flaws, turned "B" into a string of random digits, cleaned things up a bit, going on break.
 */
 
 std::ifstream fin("badmintonRecords.txt");
@@ -29,6 +33,7 @@ void fetch_data(std::string information); // going to be used for the save funct
 void check_continuation(bool& still_using, std::string continuation, bool& repeat_continuation); // used to see if they wish to continue or not
 int check_word(std::string specific_user_pick, std::string user_option1, std::string user_option2); // variation of check_continuation but for A or B
 bool simplified_continuation_once(std::string word, std::string user_input); // checks once if user input matches a word
+void nrr_player_list_shift(std::vector<std::string>& player_list, bool parity_odd); // moves everything but first guy in a circle (and the bye stays the same if there)
 
 int main() {
     bool still_using = true; // variable made to keep this running
@@ -148,6 +153,7 @@ void check_continuation(bool& still_using, std::string continuation, bool& repea
     }
 }
 
+// two options basically, checks if one or the other and if none
 int check_word(std::string specific_user_pick, std::string user_option1, std::string user_option2) { // mainly same logic as check_continuation but more broad usage for A or B
     bool validity_of_pick = false;
     bool user_option1_isTrue = false;
@@ -177,43 +183,64 @@ int check_word(std::string specific_user_pick, std::string user_option1, std::st
     return 0;
 }
 
+
+int random_int_represents_bye() {
+    int sum = 0;
+    int temp_number = 0;
+    for (int i = 0; i < 100; i++) { // 100 times
+        temp_number = (rand() % 100) + 1; // can be 1 + 0-99
+        sum += temp_number;
+    }
+    return sum; // big random number
+}
+
 void normal_round_robin_matchmaker(std::vector<std::string> player_list) {
+// my idea 3: make a literal loop and just... start moving in a circle and that's the matchmaking. if odd, @ median # of the thing = bye
 /*
 Model With 8 Players (Clockwise):
 0 7   0 6   0 5   0 4   0 3   0 2   0 1
 6 1   5 7   4 6   3 5   2 4   1 3   7 2
 5 2   4 1   3 7   2 6   1 5   7 4   6 3
 4 3   3 2   2 1   1 7   7 6   6 5   5 4
-*/
-    int other_player_index = player_list.size() - 2; // second last player
-    int other_player_index2 = 1;
-    int other_player_index_variation = 0; // both variations going to have value inputted in loops
-    int other_player_index2_variation = 0; // also declared here so no weird red underline
-    for (int rounds = 1; rounds < player_list.size(); rounds++) { // although I couldve just done rounds = 1 & rounds < player_list.size(), I don't feel like it (P.S. Changed it)
-        std::cout << "\nRound " << rounds <<  ": " << std::endl;
-        std::cout << player_list[0] << " is playing against " << player_list[player_list.size() - rounds] << std::endl; // first match-up
-        for (int other_games = 1; other_games < (player_list.size() / 2); other_games++) { // other match-ups
-            other_player_index_variation = other_player_index - (other_games - 1);
-            if (rounds == 1) { // for some reason with my model, the second column is increasing at the beginning
-                other_player_index2_variation = other_player_index2 + (other_games - 1);
-            } else {
-                other_player_index2_variation = other_player_index2 - (other_games - 1);
-            }
-            if (other_player_index_variation == 0) {
-                other_player_index_variation += (player_list.size() - 1);
-            }
-            if (other_player_index2_variation == 0) {
-                other_player_index2_variation += (player_list.size() - 1);
-            }
-            std::cout << player_list[other_player_index_variation] << " is playing against " << player_list[other_player_index2_variation] << std::endl;
-        }
-        other_player_index--;
-        other_player_index2--;
-        if (other_player_index == 0) {
-            other_player_index += (player_list.size() - 1);
-        }
-        if (other_player_index2 == 0) {
-            other_player_index2 += (player_list.size() - 1);
-        }
+*/  
+    bool parity_odd = false; // frankly, I should probably change this variable's name
+    std::string burner_var = ""; // just for the pause in between rounds
+    int bye = random_int_represents_bye(); // big number
+    int amount_of_rounds = (player_list.size());
+    amount_of_rounds--; // for some reason it won't let me lower the player_list size in the same line
+    std::string bye_string = std::to_string(bye); // stringify the big number
+    std::cout << bye_string << std::endl;
+    if (player_list.size() % 2 == 1) { // adds bye to make things even
+        player_list.push_back(bye_string);
+        amount_of_rounds--;
+        parity_odd = true;
     }
+    for (int i = 0; i < amount_of_rounds; i++) {
+        std::cout << "Round " << i + 1 << ": " << std::endl;
+        for (int j = 0; j < player_list.size(); j+=2) {
+            // if else is for the bye statement, probably will tweak in the future to be more clean
+            if (parity_odd == true && (player_list[j] == bye_string)) {
+                std::cout << player_list[j + 1] << " is out for this round." << std::endl;
+            } else if (parity_odd == true && (player_list[j + 1] == bye_string)) {
+                std::cout << player_list[j] << " is out for this round." << std::endl;
+            } else {
+                std::cout << player_list[j] << " is playing against " << player_list[j + 1] << std::endl;
+            }
+        }
+        nrr_player_list_shift(player_list, parity_odd);
+        std::cout << "Type in anything and enter to continue" << std::endl;
+        std::cin >> burner_var;
+    }
+}
+
+void nrr_player_list_shift(std::vector<std::string>& player_list, bool parity_odd) {
+    int amount_of_players_shifting = player_list.size() - 1; // cant include player[0]
+    if (parity_odd == true) {
+        amount_of_players_shifting--; // to remove the bye
+    }
+    std::string first_player = player_list[1]; // save what is the first player
+    for (int i = 1; i < amount_of_players_shifting; i++) {
+        player_list[i] = player_list[i + 1];
+    }
+    player_list[amount_of_players_shifting--] = first_player; // last player become first player (of the cycle)
 }
